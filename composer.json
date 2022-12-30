@@ -1,0 +1,25 @@
+{
+  "name": "glsv/diadoc-api",
+  "description": "utils for api sbis.ru",
+  "license": "Apache-2.0",
+  "autoload": {
+    "psr-4": {
+      "Glsv\\DiadocApi\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Sergey Golyshev",
+      "email": "s.golyshev@globus-ltd.com"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "php": ">=8.1.0",
+    "guzzlehttp/guzzle": "^7.5",
+    "ext-mbstring": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.5"
+  }
+}
