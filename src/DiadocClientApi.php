@@ -16,6 +16,11 @@ class DiadocClientApi
 {
     const DIADOC_SCHEMA = 'DiadocAuth';
 
+    protected string $baseUrl;
+    protected string $developer_key;
+    protected AuthenticatorInterface $authenticator;
+    protected TokenStorageInterface $storage;
+
     /**
      * @var Client|ClientInterface
      */
@@ -28,18 +33,25 @@ class DiadocClientApi
     ];
 
     public function __construct(
-        protected string $baseUrl,
-        protected string $developer_key,
-        protected AuthenticatorInterface $authenticator,
-        protected TokenStorageInterface $storage = new TokenStorage(),
+        string $baseUrl,
+        string $developer_key,
+        AuthenticatorInterface $authenticator,
+        TokenStorageInterface $storage = null,
         ?ClientInterface $httpClient = null)
     {
-        $domain = parse_url($this->baseUrl, PHP_URL_HOST);
+        $domain = parse_url($baseUrl, PHP_URL_HOST);
         if (!$domain) {
             throw new DiadocInvalidParamsException('couldn`t receive domain from baseUrl: ' . $baseUrl);
         }
 
+        $this->baseUrl = $baseUrl;
         $this->domain = $domain;
+        $this->developer_key = $developer_key;
+        $this->authenticator = $authenticator;
+
+        if ($storage === null) {
+            $this->storage = new TokenStorage();
+        }
 
         if ($httpClient) {
             $this->client = $httpClient;

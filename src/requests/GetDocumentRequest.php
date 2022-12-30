@@ -9,10 +9,16 @@ use Glsv\DiadocApi\vo\RequestMethod;
 
 class GetDocumentRequest implements RequestInterface
 {
+    public string $boxId;
+    public string $messageId;
+    public string $documentId;
     public $injectEntityContent = false;
 
-    public function __construct(public string $boxId, public string $messageId, public string $documentId)
+    public function __construct(string $boxId, string $messageId, string $documentId)
     {
+        $this->boxId = $boxId;
+        $this->messageId = $messageId;
+        $this->documentId = $documentId;
     }
 
     public function buildBody(): array
@@ -27,7 +33,7 @@ class GetDocumentRequest implements RequestInterface
 
     public function getMethod(): RequestMethod
     {
-        return RequestMethod::GET;
+        return new RequestMethod(RequestMethod::METHOD_GET);
     }
 
     public function getUrl(): string

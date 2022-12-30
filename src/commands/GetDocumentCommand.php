@@ -10,13 +10,19 @@ use Glsv\DiadocApi\vo\RequestMethod;
 class GetDocumentCommand
 {
     protected $url = '/V3/GetDocument';
+    protected $api;
+    protected $request;
 
-    public function __construct(protected DiadocClientApi $api, protected GetDocumentRequest $request)
+    public function __construct(DiadocClientApi $api, GetDocumentRequest $request)
     {
+        $this->api = $api;
+        $this->request = $request;
     }
 
     public function execute()
     {
-        return (new CommandExecutor($this->api))->executeRequest(RequestMethod::GET, $this->url, $this->request);
+        return (new CommandExecutor($this->api))->executeRequest(
+            new RequestMethod(RequestMethod::METHOD_GET), $this->url, $this->request
+        );
     }
 }

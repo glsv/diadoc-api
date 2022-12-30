@@ -6,8 +6,11 @@ use Glsv\DiadocApi\interfaces\ApiResponseInterface;
 
 class SuccessResponse implements ApiResponseInterface
 {
-    public function __construct(protected array $data)
+    protected array $data;
+
+    public function __construct(array $data)
     {
+        $this->data = $data;
     }
 
     public function isError(): bool

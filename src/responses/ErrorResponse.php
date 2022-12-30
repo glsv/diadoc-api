@@ -6,8 +6,13 @@ use Glsv\DiadocApi\interfaces\ApiResponseInterface;
 
 class ErrorResponse implements ApiResponseInterface
 {
-    public function __construct(public int $httpdCode, public string $message)
+    public int $httpdCode;
+    public string $message;
+
+    public function __construct(int $httpdCode, string $message)
     {
+        $this->httpdCode = $httpdCode;
+        $this->message = $message;
     }
 
     public function isError(): bool
