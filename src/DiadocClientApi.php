@@ -51,6 +51,8 @@ class DiadocClientApi
 
         if ($storage === null) {
             $this->storage = new TokenStorage();
+        } else {
+            $this->storage = $storage;
         }
 
         if ($httpClient) {
@@ -80,7 +82,6 @@ class DiadocClientApi
                 'body' => json_encode($requestBody),
             ]);
 
-            return $response->getBody()->getContents();
         } catch (\Throwable $exc) {
             throw new DiadocRuntimeApiException(
                 "Error execute request. \n" .
@@ -89,6 +90,18 @@ class DiadocClientApi
                 $exc
             );
         }
+
+        $responseObj = $this->handleResponse($response);
+
+        if ($responseObj->isError()) {
+            throw new DiadocApiUnauthorizedException(
+                "Error auth by passwd request. \n" .
+                "Origin error: " . $responseObj->getError() . "\n",
+                401
+            );
+        }
+
+        return $responseObj->getData()[0];
     }
 
     public function makeGet(string $url, array $params): ApiResponseInterface
@@ -99,8 +112,6 @@ class DiadocClientApi
                 'http_errors' => false,
                 'query' => $params,
             ]);
-
-            return $this->handleResponse($response);
         } catch (\Throwable $exc) {
             throw new DiadocRuntimeApiException(
                 "Error execute request. \n" .
@@ -109,26 +120,71 @@ class DiadocClientApi
                 $exc
             );
         }
+
+        return $this->handleResponse($response);
     }
 
     protected function handleResponse(ResponseInterface $response): ApiResponseInterface
     {
         $statusCode = $response->getStatusCode();
+        $responseBody = (string)$response->getBody();
 
         switch ($statusCode) {
-            case 401:
-                throw new DiadocApiUnauthorizedException("401 Unauthorized.", $statusCode);
-            case 403:
-                throw new DiadocApiUnauthorizedException("403 Forbidden.", $statusCode);
             case 400:
-                return new ErrorResponse($statusCode, (string)$response->getBody());
+                return new ErrorResponse($statusCode, $responseBody);
+            case 401:
+                throw new DiadocApiUnauthorizedException(
+                    $this->msgErr("401 Unauthorized.", $responseBody), $statusCode
+                );
+            case 402:
+                throw new DiadocApiUnauthorizedException(
+                    $this->msgErr("402 Forbidden. Payment Required. ", $responseBody), $statusCode
+                );
+            case 403:
+                throw new DiadocApiUnauthorizedException(
+                    $this->msgErr("403 Forbidden.", $responseBody), $statusCode
+                );
+            case 404:
+                throw new DiadocRuntimeApiException(
+                    $this->msgErr("404 Not Found.", $responseBody), $statusCode
+                );
+            case 405:
+                throw new DiadocRuntimeApiException(
+                    $this->msgErr("Method Not Allowed.", $responseBody), $statusCode
+                );
+            case 500:
+                throw new DiadocRuntimeApiException(
+                    $this->msgErr("500 Internal Server Error .", $responseBody), $statusCode
+                );
+        }
+
+        if ($statusCode !== 200) {
+            throw new DiadocRuntimeApiException('Can`t handle response with status code = ' . $statusCode);
+        }
+
+        return $this->parseResponse($response, $responseBody);
+    }
+
+    private function parseResponse(ResponseInterface $response, string $responseBody): ApiResponseInterface
+    {
+        $contentType = $response->getHeader('Content-Type');
+        if (empty($contentType)) {
+            throw new DiadocRuntimeApiException('Content-Type does not exist in response');
+        }
+
+        if (strpos($contentType[0], 'text/plain') === 0) {
+            return new SuccessResponse([$responseBody]);
+        }
+
+        if (strpos($contentType[0], 'application/json') !== 0) {
+            throw new DiadocRuntimeApiException('Unknown contentType: ' . $contentType[0]);
         }
 
         try {
-            $data = json_decode((string)$response->getBody(), true, 512, JSON_THROW_ON_ERROR);
+            $data = json_decode($responseBody, true, 512, JSON_THROW_ON_ERROR);
         } catch (\Throwable $exc) {
             throw new DiadocRuntimeApiException(
-                "Https status code: $statusCode \n" .
+                "Https status code: " . $response->getStatusCode() . " \n" .
                 "Error parsing response:\n------------" .
                 mb_substr((string)$response->getBody(), 0, 100) . "...\n" .
                 "------------\n"
@@ -136,6 +192,11 @@ class DiadocClientApi
         }
 
         return new SuccessResponse($data);
+    }
+
+    private function msgErr(string $prefix, $response): string
+    {
+        return $prefix .' Response: ' . $response;
     }
 
     protected function prepareWorkHeaders(): array
