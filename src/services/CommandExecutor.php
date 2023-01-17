@@ -19,7 +19,7 @@ class CommandExecutor
     public function executeRequest(RequestMethod $method, string $url, RequestInterface $request): ApiResponseInterface
     {
         if ($method->getValue() == RequestMethod::METHOD_GET) {
-            return $this->api->makeGet($url, $request->buildBody());
+            return $this->api->executeGet($url, $request->buildBody());
         }
 
         throw new DiadocRuntimeApiException('not implemented');

@@ -9,4 +9,6 @@ interface TokenStorageInterface
     public function get(): ?string;
 
     public function save(string $token): void;
+
+    public function clear(): void;
 }

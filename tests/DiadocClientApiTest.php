@@ -75,7 +75,7 @@ class DiadocClientApiTest extends TestCase
             $this->client
         );
 
-        $response = $api->makeGet('/rel_url', []);
+        $response = $api->executeGet('/rel_url', []);
 
         $this->assertTrue($response->isError());
     }
@@ -99,7 +99,7 @@ class DiadocClientApiTest extends TestCase
             $this->client
         );
 
-        $response = $api->makeGet('/rel_url', []);
+        $response = $api->executeGet('/rel_url', []);
 
         $this->assertTrue($response->isError());
     }

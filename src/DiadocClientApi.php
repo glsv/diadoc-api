@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Glsv\DiadocApi;
 
-use Glsv\DiadocApi\exceptions\{DiadocApiUnauthorizedException, DiadocRuntimeApiException, DiadocInvalidParamsException};
+use Glsv\DiadocApi\exceptions\{DiadocApiFailAuthException,
+    DiadocApiUnauthorizedException,
+    DiadocRuntimeApiException,
+    DiadocInvalidParamsException};
 use Glsv\DiadocApi\interfaces\{ApiResponseInterface, AuthenticatorInterface, TokenStorageInterface};
 use Glsv\DiadocApi\responses\{ErrorResponse, SuccessResponse};
 use Glsv\DiadocApi\services\TokenStorage;
+use Glsv\DiadocApi\vo\RequestMethod;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -19,7 +23,7 @@ class DiadocClientApi
     protected string $baseUrl;
     protected string $developer_key;
     protected AuthenticatorInterface $authenticator;
-    protected TokenStorageInterface $storage;
+    protected TokenStorageInterface $tokenStorage;
 
     /**
      * @var Client|ClientInterface
@@ -50,14 +54,13 @@ class DiadocClientApi
         $this->authenticator = $authenticator;
 
         if ($storage === null) {
-            $this->storage = new TokenStorage();
+            $this->tokenStorage = new TokenStorage();
         } else {
-            $this->storage = $storage;
+            $this->tokenStorage = $storage;
         }
 
         if ($httpClient) {
             $this->client = $httpClient;
-
         } else {
             $this->client = new Client(['base_uri' => $baseUrl]);
         }
@@ -94,7 +97,7 @@ class DiadocClientApi
         $responseObj = $this->handleResponse($response);
 
         if ($responseObj->isError()) {
-            throw new DiadocApiUnauthorizedException(
+            throw new DiadocApiFailAuthException(
                 "Error auth by passwd request. \n" .
                 "Origin error: " . $responseObj->getError() . "\n",
                 401
@@ -104,14 +107,30 @@ class DiadocClientApi
         return $responseObj->getData()[0];
     }
 
-    public function makeGet(string $url, array $params): ApiResponseInterface
+    public function executeGet(string $url, array $params): ApiResponseInterface
+    {
+        return $this->performRequest($url, $params, new RequestMethod(RequestMethod::METHOD_GET));
+    }
+
+    protected function performRequest(string $url, array $params, RequestMethod $method, bool $repeated = false): ApiResponseInterface
     {
         try {
-            $response = $this->client->get($url, [
-                'headers' => $this->prepareWorkHeaders(),
-                'http_errors' => false,
-                'query' => $params,
-            ]);
+            if ($method->getValue() == RequestMethod::METHOD_GET) {
+                $response = $this->performGetRequest($url, $params);
+            } else {
+                throw new DiadocRuntimeApiException('is not implemented');
+            }
+
+            return $this->handleResponse($response);
+        } catch (DiadocApiUnauthorizedException $exc) {
+            if (!$repeated) {
+                $this->tokenStorage->clear();
+                return $this->performRequest($url, $params, $method, true);
+            }
+
+            throw $exc;
+        } catch (DiadocApiFailAuthException $exc) {
+            throw $exc;
         } catch (\Throwable $exc) {
             throw new DiadocRuntimeApiException(
                 "Error execute request. \n" .
@@ -120,8 +139,15 @@ class DiadocClientApi
                 $exc
             );
         }
+    }
 
-        return $this->handleResponse($response);
+    protected function performGetRequest(string $url, array $params): ResponseInterface
+    {
+        return $this->client->get($url, [
+            'headers' => $this->prepareWorkHeaders(),
+            'http_errors' => false,
+            'query' => $params,
+        ]);
     }
 
     protected function handleResponse(ResponseInterface $response): ApiResponseInterface
@@ -168,11 +194,8 @@ class DiadocClientApi
     private function parseResponse(ResponseInterface $response, string $responseBody): ApiResponseInterface
     {
         $contentType = $response->getHeader('Content-Type');
-        if (empty($contentType)) {
-            throw new DiadocRuntimeApiException('Content-Type does not exist in response');
-        }
 
-        if (strpos($contentType[0], 'text/plain') === 0) {
+        if (empty($contentType) || strpos($contentType[0], 'text/plain') === 0) {
             return new SuccessResponse([$responseBody]);
         }
 
@@ -208,18 +231,21 @@ class DiadocClientApi
 
     protected function  BuildAuthString(): string
     {
-        $token = $this->storage->get();
-
-        if ($token === null) {
-            $this->storage->save($this->authenticator->getToken($this));
-            $token = $this->storage->get();
-        }
-
         return sprintf(
             '%s ddauth_api_client_id=%s, ddauth_token=%s',
             self::DIADOC_SCHEMA,
             $this->developer_key,
-            $token
+            $this->getTokenForApi()
         );
+    }
+
+    protected function getTokenForApi()
+    {
+        $token = $this->tokenStorage->get();
+        if ($token === null) {
+            $this->tokenStorage->save($this->authenticator->getToken($this));
+        }
+
+        return  $this->tokenStorage->get();
     }
 }

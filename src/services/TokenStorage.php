@@ -62,4 +62,13 @@ class TokenStorage implements TokenStorageInterface
     {
         return $this->dir . DIRECTORY_SEPARATOR . 'diadoc_token.txt';
     }
+
+    public function clear(): void
+    {
+        self::$token = null;
+
+        if (file_exists($this->getFilename())) {
+            unlink($this->getFilename());
+        }
+    }
 }
