@@ -9,7 +9,9 @@ use Glsv\DiadocApi\exceptions\{DiadocApiFailAuthException,
     DiadocRuntimeApiException,
     DiadocInvalidParamsException};
 use Glsv\DiadocApi\interfaces\{ApiResponseInterface, AuthenticatorInterface, TokenStorageInterface};
-use Glsv\DiadocApi\responses\{ErrorResponse, SuccessResponse};
+use Glsv\DiadocApi\responses\{ErrorResponse, SuccessFileResponse, SuccessResponse};
+use Glsv\DiadocApi\dto\FileDto;
+use Glsv\DiadocApi\helpers\FilenameResponseGetter;
 use Glsv\DiadocApi\services\TokenStorage;
 use Glsv\DiadocApi\vo\RequestMethod;
 use GuzzleHttp\Client;
@@ -193,14 +195,22 @@ class DiadocClientApi
 
     private function parseResponse(ResponseInterface $response, string $responseBody): ApiResponseInterface
     {
-        $contentType = $response->getHeader('Content-Type');
+        $contentTypes = $response->getHeader('Content-Type');
 
-        if (empty($contentType) || strpos($contentType[0], 'text/plain') === 0) {
+        if (empty($contentTypes) || strpos($contentTypes[0], 'text/plain') === 0) {
             return new SuccessResponse([$responseBody]);
         }
 
-        if (strpos($contentType[0], 'application/json') !== 0) {
-            throw new DiadocRuntimeApiException('Unknown contentType: ' . $contentType[0]);
+        $contentType = $contentTypes[0];
+
+        if ($contentType === "application/pdf") {
+            return new SuccessFileResponse(
+                new FileDto('xxx', $contentType, FilenameResponseGetter::getFilename($response))
+            );
+        }
+
+        if (strpos($contentType, 'application/json') !== 0) {
+            throw new DiadocRuntimeApiException('Unknown contentType: ' . $contentType);
         }
 
         try {

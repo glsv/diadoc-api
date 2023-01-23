@@ -1,31 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Glsv\DiadocApi\commands;
 
 use Glsv\DiadocApi\DiadocClientApi;
 use Glsv\DiadocApi\interfaces\ApiResponseInterface;
 use Glsv\DiadocApi\interfaces\CommandInterface;
-use Glsv\DiadocApi\requests\GetDocumentRequest;
-use Glsv\DiadocApi\responses\ErrorResponse;
-use Glsv\DiadocApi\responses\SuccessResponse;
+use Glsv\DiadocApi\requests\GeneratePrintFormRequest;
 use Glsv\DiadocApi\services\CommandExecutor;
 use Glsv\DiadocApi\vo\RequestMethod;
 
-class GetDocumentCommand implements CommandInterface
+class GeneratePrintFormCommand  implements CommandInterface
 {
-    protected $url = '/V3/GetDocument';
+    protected $url = '/GeneratePrintForm';
     protected DiadocClientApi $api;
-    protected $request;
+    protected GeneratePrintFormRequest $request;
 
-    public function __construct(DiadocClientApi $api, GetDocumentRequest $request)
+    public function __construct(DiadocClientApi $api, GeneratePrintFormRequest $request)
     {
         $this->api = $api;
         $this->request = $request;
     }
 
     /**
-     * Формат возвращаемых данных внутри SuccessResponse()
-     * https://developer.kontur.ru/Docs/diadoc-api/proto/Document.html
+     * При успешном выполнении возвращается SuccessFileResponse()
      * @return ApiResponseInterface
      * @throws \Glsv\DiadocApi\exceptions\DiadocRuntimeApiException
      */

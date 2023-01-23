@@ -1,19 +1,15 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Glsv\DiadocApi\requests;
 
 use Glsv\DiadocApi\exceptions\DiadocInvalidParamsException;
 use Glsv\DiadocApi\interfaces\RequestInterface;
-use Glsv\DiadocApi\vo\RequestMethod;
 
-class GetDocumentRequest implements RequestInterface
+class GeneratePrintFormRequest implements RequestInterface
 {
     public string $boxId;
     public string $messageId;
     public string $documentId;
-    public $injectEntityContent = false;
 
     public function __construct(string $boxId, string $messageId, string $documentId)
     {
@@ -29,7 +25,6 @@ class GetDocumentRequest implements RequestInterface
             throw new DiadocInvalidParamsException('documentId is empty');
         }
 
-
         $this->boxId = $boxId;
         $this->messageId = $messageId;
         $this->documentId = $documentId;
@@ -40,18 +35,7 @@ class GetDocumentRequest implements RequestInterface
         return [
             'boxId' => $this->boxId,
             'messageId' => $this->messageId,
-            'entityId' => $this->documentId,
-            'injectEntityContent' => $this->injectEntityContent ? 'true' : 'false',
+            'documentId' => $this->documentId,
         ];
-    }
-
-    public function getMethod(): RequestMethod
-    {
-        return new RequestMethod(RequestMethod::METHOD_GET);
-    }
-
-    public function getUrl(): string
-    {
-        return '/V3/GetDocument';
     }
 }
