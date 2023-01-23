@@ -205,7 +205,7 @@ class DiadocClientApi
 
         if ($contentType === "application/pdf") {
             return new SuccessFileResponse(
-                new FileDto('xxx', $contentType, FilenameResponseGetter::getFilename($response))
+                new FileDto($responseBody, $contentType, FilenameResponseGetter::getFilename($response))
             );
         }
 
