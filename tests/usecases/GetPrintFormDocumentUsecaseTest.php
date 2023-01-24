@@ -8,10 +8,10 @@ use Glsv\DiadocApi\exceptions\DiadocRuntimeApiException;
 use Glsv\DiadocApi\responses\ErrorResponse;
 use Glsv\DiadocApi\responses\SuccessFileResponse;
 use Glsv\DiadocApi\responses\SuccessResponse;
-use Glsv\DiadocApi\usecases\getPrintFormDocumentUsecase;
+use Glsv\DiadocApi\usecases\GetPrintFormDocumentUsecase;
 use PHPUnit\Framework\TestCase;
 
-class getPrintFormDocumentUsecaseTest extends TestCase
+class GetPrintFormDocumentUsecaseTest extends TestCase
 {
     public function testSuccess()
     {
@@ -22,7 +22,7 @@ class getPrintFormDocumentUsecaseTest extends TestCase
         $api = $this->getMockBuilder(DiadocClientApi::class)->disableOriginalConstructor()->getMock();
         $api->method('executeGet')->willReturn($expectedResponse);
 
-        $usecase = new getPrintFormDocumentUsecase($api, 'box_id', 'message_id', 'doc_id');
+        $usecase = new GetPrintFormDocumentUsecase($api, 'box_id', 'message_id', 'doc_id');
         $file = $usecase->getFile();
 
         $this->assertSame($expectedResponse->getData()[0], $file);
@@ -37,7 +37,7 @@ class getPrintFormDocumentUsecaseTest extends TestCase
         $api = $this->getMockBuilder(DiadocClientApi::class)->disableOriginalConstructor()->getMock();
         $api->method('executeGet')->willReturn($expectedResponse);
 
-        $usecase = new getPrintFormDocumentUsecase($api, 'box_id', 'message_id', 'doc_id');
+        $usecase = new GetPrintFormDocumentUsecase($api, 'box_id', 'message_id', 'doc_id');
         $usecase->getFile();
     }
 

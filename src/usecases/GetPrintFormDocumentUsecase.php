@@ -10,7 +10,7 @@ use Glsv\DiadocApi\dto\FileDto;
 use Glsv\DiadocApi\exceptions\DiadocRuntimeApiException;
 use Glsv\DiadocApi\requests\GeneratePrintFormRequest;
 
-class getPrintFormDocumentUsecase
+class GetPrintFormDocumentUsecase
 {
     private DiadocClientApi $api;
     private string $boxId;
