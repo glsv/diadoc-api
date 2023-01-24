@@ -6,8 +6,6 @@ use Glsv\DiadocApi\DiadocClientApi;
 use Glsv\DiadocApi\interfaces\ApiResponseInterface;
 use Glsv\DiadocApi\interfaces\CommandInterface;
 use Glsv\DiadocApi\requests\GetDocumentRequest;
-use Glsv\DiadocApi\responses\ErrorResponse;
-use Glsv\DiadocApi\responses\SuccessResponse;
 use Glsv\DiadocApi\services\CommandExecutor;
 use Glsv\DiadocApi\vo\RequestMethod;
 

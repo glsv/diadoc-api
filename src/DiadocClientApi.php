@@ -197,13 +197,15 @@ class DiadocClientApi
     {
         $contentTypes = $response->getHeader('Content-Type');
 
-        if (empty($contentTypes) || strpos($contentTypes[0], 'text/plain') === 0) {
+        if (empty($contentTypes)) {
             return new SuccessResponse([$responseBody]);
         }
 
         $contentType = $contentTypes[0];
 
-        if ($contentType === "application/pdf") {
+        if (strpos($contentType, 'text/plain') === 0) {
+            return new SuccessResponse([$responseBody]);
+        } elseif ($contentType === "application/pdf") {
             return new SuccessFileResponse(
                 new FileDto($responseBody, $contentType, FilenameResponseGetter::getFilename($response))
             );
