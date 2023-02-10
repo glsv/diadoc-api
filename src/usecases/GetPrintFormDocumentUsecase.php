@@ -40,6 +40,10 @@ class GetPrintFormDocumentUsecase
             throw new DiadocRuntimeApiException('File doesn`t received');
         }
 
-        return array_shift($files);
+        if ($fileDto = array_shift($files)) {
+            return $fileDto;
+        }
+
+        throw new DiadocRuntimeApiException('File doesn`t received. Empty response.');
     }
 }
