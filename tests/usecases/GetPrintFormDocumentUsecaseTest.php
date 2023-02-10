@@ -6,6 +6,7 @@ use Glsv\DiadocApi\DiadocClientApi;
 use Glsv\DiadocApi\dto\FileDto;
 use Glsv\DiadocApi\exceptions\DiadocRuntimeApiException;
 use Glsv\DiadocApi\responses\ErrorResponse;
+use Glsv\DiadocApi\responses\RetryResponse;
 use Glsv\DiadocApi\responses\SuccessFileResponse;
 use Glsv\DiadocApi\responses\SuccessResponse;
 use Glsv\DiadocApi\usecases\GetPrintFormDocumentUsecase;
@@ -46,6 +47,20 @@ class GetPrintFormDocumentUsecaseTest extends TestCase
         $this->expectException(DiadocRuntimeApiException::class);
 
         $expectedResponse = new SuccessResponse([]);
+
+        $api = $this->getMockBuilder(DiadocClientApi::class)->disableOriginalConstructor()->getMock();
+        $api->method('executeGet')->willReturn($expectedResponse);
+
+        $usecase = new getPrintFormDocumentUsecase($api, 'box_id', 'message_id', 'doc_id');
+        $usecase->getFile();
+    }
+
+    public function testRetry()
+    {
+        $this->expectException(DiadocRuntimeApiException::class);
+        $this->expectExceptionMessage('Retry request after');
+
+        $expectedResponse = new RetryResponse(20);
 
         $api = $this->getMockBuilder(DiadocClientApi::class)->disableOriginalConstructor()->getMock();
         $api->method('executeGet')->willReturn($expectedResponse);

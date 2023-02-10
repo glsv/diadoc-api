@@ -104,6 +104,32 @@ class DiadocClientApiTest extends TestCase
         $this->assertTrue($response->isError());
     }
 
+    public function testRetryResponse()
+    {
+        $response = new Response(
+            200,
+            [
+                'Content-Type' => 'text/plain; charset=utf-8',
+                'Retry-After' => '20'
+            ],
+            ''
+        );
+
+        $this->client->method('get')->willReturn($response);
+
+        $api = new DiadocClientApi(
+            $this->baseUrl,
+            $this->developerToken,
+            $this->authenticator,
+            null,
+            $this->client
+        );
+
+        $resultResponse = $api->executeGet('/path', []);
+
+        $this->assertTrue($resultResponse->isRetryRequired());
+    }
+
     public function ErrorHttpCodes(): array
     {
         return [

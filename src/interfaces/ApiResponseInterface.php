@@ -9,4 +9,8 @@ interface ApiResponseInterface
     public function getError(): string;
 
     public function getData(): array;
+
+    public function isRetryRequired(): bool;
+
+    public function getRetryTime(): int;
 }

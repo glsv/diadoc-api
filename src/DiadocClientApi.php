@@ -9,7 +9,7 @@ use Glsv\DiadocApi\exceptions\{DiadocApiFailAuthException,
     DiadocRuntimeApiException,
     DiadocInvalidParamsException};
 use Glsv\DiadocApi\interfaces\{ApiResponseInterface, AuthenticatorInterface, TokenStorageInterface};
-use Glsv\DiadocApi\responses\{ErrorResponse, SuccessFileResponse, SuccessResponse};
+use Glsv\DiadocApi\responses\{ErrorResponse, RetryResponse, SuccessFileResponse, SuccessResponse};
 use Glsv\DiadocApi\dto\FileDto;
 use Glsv\DiadocApi\helpers\FilenameResponseGetter;
 use Glsv\DiadocApi\services\TokenStorage;
@@ -195,6 +195,11 @@ class DiadocClientApi
 
     private function parseResponse(ResponseInterface $response, string $responseBody): ApiResponseInterface
     {
+        $retryAfter = $response->getHeader('Retry-After');
+        if ($retryAfter) {
+            return new RetryResponse((int)$retryAfter);
+        }
+
         $contentTypes = $response->getHeader('Content-Type');
 
         if (empty($contentTypes)) {

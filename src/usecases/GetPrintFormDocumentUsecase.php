@@ -34,6 +34,10 @@ class GetPrintFormDocumentUsecase
             throw new DiadocRuntimeApiException($result->getError());
         }
 
+        if ($result->isRetryRequired()) {
+            throw new DiadocRuntimeApiException('Retry request after ' . $result->getRetryTime() . ' seconds.');
+        }
+
         $files = $result->getData();
 
         if (empty($files)) {

@@ -3,9 +3,12 @@
 namespace Glsv\DiadocApi\responses;
 
 use Glsv\DiadocApi\interfaces\ApiResponseInterface;
+use Glsv\DiadocApi\traits\ResponseNoRetryTrait;
 
 class ErrorResponse implements ApiResponseInterface
 {
+    use ResponseNoRetryTrait;
+
     public int $httpdCode;
     public string $message;
 
