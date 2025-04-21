@@ -35,7 +35,8 @@ class DiadocClientApi
     protected string $domain = '';
 
     protected array $defaultHeaders = [
-        'Content-Type' => 'application/json; utf-8',
+        'Content-Type' => 'application/json; charset=utf-8',
+        'Accept' => 'application/json',
     ];
 
     public function __construct(
